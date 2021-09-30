@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, {Component, useState} from 'react';
 import PropTypes from 'prop-types';
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
@@ -27,9 +27,9 @@ import { v4 as uuid } from 'uuid';
 import { withStyles } from '@material-ui/core/styles';
 import CompanionWindow from 'mirador/dist/es/src/containers/CompanionWindow';
 import AnnotationDrawing from './AnnotationDrawing';
-import TextEditor from './TextEditor';
 import WebAnnotation from './WebAnnotation';
 import CursorIcon from './icons/Cursor';
+import E13Form from "./E13Form";
 
 /** */
 class AnnotationCreation extends Component {
@@ -78,7 +78,13 @@ class AnnotationCreation extends Component {
     this.state = {
       ...toolState,
       annoBody: '',
+
       colorPopoverOpen: false,
+      inputs: {
+        p141: "",
+        p141_type: "",
+        p177: "",
+      },
       lineWeightPopoverOpen: false,
       popoverAnchorEl: null,
       popoverLineWeightAnchorEl: null,
@@ -106,6 +112,13 @@ class AnnotationCreation extends Component {
     this.setState({
       lineWeightPopoverOpen: false,
       popoverLineWeightAnchorEl: null,
+    });
+  }
+
+  /** */
+  setInputs(inputs) {
+    this.setState({
+      inputs: inputs,
     });
   }
 
@@ -159,12 +172,12 @@ class AnnotationCreation extends Component {
       annotation, canvases, receiveAnnotation, config,
     } = this.props;
     const {
-      annoBody, tags, xywh, svg, textEditorStateBustingKey,
+      tags, xywh, svg, textEditorStateBustingKey
     } = this.state;
     canvases.forEach((canvas) => {
       const storageAdapter = config.annotation.adapter(canvas.id);
       const anno = new WebAnnotation({
-        body: annoBody,
+        body: this.state.inputs,
         canvasId: canvas.id,
         id: (annotation && annotation.id) || `${uuid()}`,
         manifestId: canvas.options.resource.id,
@@ -219,6 +232,7 @@ class AnnotationCreation extends Component {
 
   /** */
   render() {
+
     const {
       annotation, classes, closeCompanionWindow, id, windowId,
     } = this.props;
@@ -295,77 +309,10 @@ class AnnotationCreation extends Component {
           </Grid>
           <Grid container>
             <Grid item xs={12}>
-              <Typography variant="overline">
-                Style
-              </Typography>
-            </Grid>
-            <Grid item xs={12}>
-              <ToggleButtonGroup
-                aria-label="style selection"
-                size="small"
-              >
-                <ToggleButton
-                  value="strokeColor"
-                  aria-label="select color"
-                  onClick={this.openChooseColor}
-                >
-                  <StrokeColorIcon style={{ fill: strokeColor }} />
-                  <ArrowDropDownIcon />
-                </ToggleButton>
-                <ToggleButton
-                  value="strokeColor"
-                  aria-label="select line weight"
-                  onClick={this.openChooseLineWeight}
-                >
-                  <LineWeightIcon />
-                  <ArrowDropDownIcon />
-                </ToggleButton>
-                <ToggleButton
-                  value="fillColor"
-                  aria-label="select color"
-                  onClick={this.openChooseColor}
-                >
-                  <FormatColorFillIcon style={{ fill: fillColor }} />
-                  <ArrowDropDownIcon />
-                </ToggleButton>
-              </ToggleButtonGroup>
-
-              <Divider flexItem orientation="vertical" className={classes.divider} />
-              { /* close / open polygon mode only for freehand drawing mode. */
-                activeTool === 'freehand'
-                  ? (
-                    <ToggleButtonGroup
-                      size="small"
-                      value={closedMode}
-                      onChange={this.changeClosedMode}
-                    >
-                      <ToggleButton value="closed">
-                        <ClosedPolygonIcon />
-                      </ToggleButton>
-                      <ToggleButton value="open">
-                        <OpenPolygonIcon />
-                      </ToggleButton>
-                    </ToggleButtonGroup>
-                  )
-                  : null
-              }
-
+              <E13Form inputs={this.state.inputs} setInputs={(inputs) => this.setInputs(inputs)}/>
             </Grid>
           </Grid>
-          <Grid container>
-            <Grid item xs={12}>
-              <Typography variant="overline">
-                Content
-              </Typography>
-            </Grid>
-            <Grid item xs={12}>
-              <TextEditor
-                key={textEditorStateBustingKey}
-                annoHtml={annoBody}
-                updateAnnotationBody={this.updateBody}
-              />
-            </Grid>
-          </Grid>
+
           <Button onClick={closeCompanionWindow}>
             Cancel
           </Button>
